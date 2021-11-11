@@ -165,14 +165,6 @@ screen.connect_signal("property::geometry", set_wallpaper)
 
 -- {{{ Audio Functions
 
--- Get volume level function
-function getvol()
-    handle = io.popen("pulsemixer --get-volume | awk '{print $1}'")
-    cur_vol = handle:read("*l")
-    handle:close()
-    return tonumber(cur_vol)
-end
-
 -- Get mute status function
 function getmute()
     local handle = io.popen("pulsemixer --get-mute")
@@ -181,10 +173,8 @@ function getmute()
     return tonumber(mute_status)
 end
 
-
 -- Get volume icon function
-function getvolicon()
-    cur_vol = getvol()
+function getvolicon(cur_vol)
     volicon = ""
     
     if getmute() == 1 then
@@ -203,6 +193,7 @@ function getvolicon()
 end
 	
 -- Mute function
+local pvol
 function mute(widget)
     awful.util.spawn("pulsemixer --toggle-mute")
 
@@ -214,17 +205,7 @@ function mute(widget)
 	os.execute("echo 1 > " .. led)
     end
     
-    widget.text = string.format(" [ %s %d%% ] ", getvolicon(), getvol())
-end
-
-function voldown(widget)
-    awful.util.spawn("pulsemixer --change-volume -1")
-    widget.text = string.format(" [ %s %d%% ] ", getvolicon(), getvol())
-end
-
-function volup(widget)
-    awful.util.spawn("pulsemixer --change-volume +1")
-    widget.text = string.format(" [ %s %d%% ] ", getvolicon(), getvol())
+    widget.text = string.format("[ %s %d%% ] ", getvolicon(pvol), pvol)
 end
 
 -- }}}
@@ -272,7 +253,16 @@ end)
 local bat_widget = wibox.widget { font = text_font, widget = bat_level }
 
 -- Volume
-local vol_widget = wibox.widget { font = text_font, widget = wibox.widget.textbox, text = string.format(" [ %s %d%% ] ", getvolicon(), getvol()) }
+local vol_level = awful.widget.watch("bash -c \"pulsemixer --get-volume | awk '{print $1}'\"", 0.1, function(widget, stdout)
+	local vol = tonumber(stdout)
+        
+        if vol ~= pvol or pvol == nil then
+            pvol = vol
+            widget:set_text(string.format("[ %s %d%% ] ", getvolicon(vol), vol))
+        end
+end)
+
+local vol_widget = wibox.widget { font = text_font, widget = vol_level }
 
 -- Brigtness
 -- local brighticon = wibox.widget.imagebox(theme.widget_brightness)
@@ -434,8 +424,8 @@ globalkeys = gears.table.join(
     awful.key({}, "XF86MonBrightnessUp", function () awful.spawn("light -A 5") end),
 
     -- Volume
-    awful.key({}, "XF86AudioRaiseVolume", function () awful.util.spawn(volup(vol_widget)) end),
-    awful.key({}, "XF86AudioLowerVolume", function () awful.util.spawn(voldown(vol_widget)) end),
+    awful.key({}, "XF86AudioRaiseVolume", function () awful.util.spawn("pulsemixer --change-volume +1") end),
+    awful.key({}, "XF86AudioLowerVolume", function () awful.util.spawn("pulsemixer --change-volume -1") end),
     awful.key({}, "XF86AudioMute", function () awful.util.spawn(mute(vol_widget)) end),
     
     -- Layout manipulation
