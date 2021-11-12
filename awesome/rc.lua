@@ -15,8 +15,6 @@ local naughty = require("naughty")
 local menubar = require("menubar")
 local hotkeys_popup = require("awful.hotkeys_popup")
 
-local text_font = "Fira Sans Semibold 12"
-
 -- Enable hotkeys help widget for VIM and other apps
 -- when client with a matching name is opened:
 require("awful.hotkeys_popup.keys")
@@ -153,11 +151,13 @@ local tasklist_buttons = gears.table.join(
                                               awful.client.focus.byidx(-1)
                                           end))
 
+local cust_theme = require("themes.default.theme")
+local text_font = cust_theme["font"]
+
 local function set_wallpaper(s)
     awful.spawn.with_shell("$HOME/.config/awesome/s_wall.sh")
     os.execute("sleep 1")
     beautiful.init("~/.config/awesome/themes/default/theme.lua")
-	
 end
 
 -- Re-set wallpaper when a screen's geometry changes (e.g. different resolution)
@@ -165,48 +165,62 @@ screen.connect_signal("property::geometry", set_wallpaper)
 
 -- {{{ Audio Functions
 
--- Get mute status function
-function getmute()
-    local handle = io.popen("pulsemixer --get-mute")
-    mute_status = handle:read("*l")
-    handle:close()
-    return tonumber(mute_status)
-end
+local handle = io.popen("pulsemixer --get-volume | awk '{print $1}'")
+cur_vol = handle:read("*l")
+handle:close()
 
--- Get volume icon function
-function getvolicon(cur_vol)
-    volicon = ""
-    
-    if getmute() == 1 then
-    	volicon = "婢"
-    elseif cur_vol <= 10 then
-	volicon = ""
-    elseif cur_vol >= 10 and cur_vol <= 30 then
-	volicon = "奔"
-    elseif cur_vol >= 30 and cur_vol <= 60 then
-	volicon = "墳"
-    elseif cur_vol >= 60 and cur_vol <= 100 then
-	volicon = ""
-    end
-    
-    return volicon
-end
-	
 -- Mute function
-local pvol
 function mute(widget)
     awful.util.spawn("pulsemixer --toggle-mute")
 
     local led = "/sys/class/leds/hda::mute/brightness"
-    local mute_status = getmute()
+    
+    local handle = io.popen("pulsemixer --get-mute")
+    local mute_status = tonumber(handle:read("*l"))
+    handle:close()
+        
     if mute_status == 0 then
 	os.execute("echo 0 > " .. led)
+    	widget.text = string.format("[ %s %d%% ] • ", "墳", cur_vol) 
     elseif mute_status == 1 then
 	os.execute("echo 1 > " .. led)
+	widget.text = string.format("[ %s %d%% ] • ", "婢", cur_vol)
     end
-    
-    widget.text = string.format("[ %s %d%% ] ", getvolicon(pvol), pvol)
 end
+
+function volup(widget)
+    awful.util.spawn("pulsemixer --change-volume +1")
+    cur_vol = cur_vol + 1
+    widget.text = string.format("[ %s %d%% ] • ", "墳", cur_vol)
+end
+
+function voldown(widget)
+    awful.util.spawn("pulsemixer --change-volume -1")
+    cur_vol = cur_vol - 1
+    widget.text = string.format("[ %s %d%% ] • ", "墳", cur_vol)
+end
+
+
+-- }}}
+
+-- {{{ Brightness Functions
+
+local handle = io.popen("light -G")
+cur_bright = handle:read("*l")
+handle:close()
+
+function brightup(widget)
+    awful.util.spawn("light -A 1")
+    cur_bright = cur_bright + 1
+    widget.text = string.format("[ %s %d%% ] • ", "", cur_bright)
+end
+
+function brightdown(widget)
+    awful.util.spawn("light -U 1")
+    cur_bright = cur_bright - 1
+    widget.text = string.format("[ %s %d%% ] • ", "", cur_bright)
+end
+
 
 -- }}}
 
@@ -228,6 +242,7 @@ local bat_level = awful.widget.watch("cat /sys/class/power_supply/BAT1/capacity"
 		baticon = ""
 	elseif bat <= 10 then
 		baticon = ""
+		naughty.notify { title = "Battery low", text = "Connect this machine to a charger", timeout = 15, fg = cust_theme["fg_normal"], bg = cust_theme["bg_focus"] }
 	elseif bat >= 10 and bat <= 20 then
 		baticon = ""
 	elseif bat >= 20 and bat <= 30 then
@@ -247,22 +262,16 @@ local bat_level = awful.widget.watch("cat /sys/class/power_supply/BAT1/capacity"
 	elseif bat >= 90 and bat <= 100 then
 		baticon = ""
 	end
-	widget:set_text(string.format("[ %s %d%% ] ", baticon, bat))
+	widget:set_text(string.format("[ %s %d%% ] • ", baticon, bat))
 end)
 
 local bat_widget = wibox.widget { font = text_font, widget = bat_level }
 
 -- Volume
-local vol_level = awful.widget.watch("bash -c \"pulsemixer --get-volume | awk '{print $1}'\"", 0.1, function(widget, stdout)
-	local vol = tonumber(stdout)
-        
-        if vol ~= pvol or pvol == nil then
-            pvol = vol
-            widget:set_text(string.format("[ %s %d%% ] ", getvolicon(vol), vol))
-        end
-end)
+local vol_widget = wibox.widget { font = text_font, text = string.format("[ %s %d%% ] • ", "墳", cur_vol), widget = wibox.widget.textbox }
 
-local vol_widget = wibox.widget { font = text_font, widget = vol_level }
+-- Brightness
+local bright_widget = wibox.widget { font = text_font, text = string.format("[ %s %d%% ] • ", "", cur_bright), widget = wibox.widget.textbox }
 
 -- Brigtness
 -- local brighticon = wibox.widget.imagebox(theme.widget_brightness)
@@ -377,8 +386,9 @@ awful.screen.connect_for_each_screen(function(s)
         { -- Right widgets
             layout = wibox.layout.fixed.horizontal,
 	    s.systray,
-	    wibox.container.margin(bat_widget, 3, 3),
+	    bat_widget,
 	    vol_widget,
+	    bright_widget,
             -- mykeyboardlayout,
             mytextclock,
         },
@@ -419,13 +429,12 @@ globalkeys = gears.table.join(
     ),
 
     -- Brightness
-    awful.key({}, "XF86MonBrightnessDown", function () awful.spawn("light -U 5") end),
-
-    awful.key({}, "XF86MonBrightnessUp", function () awful.spawn("light -A 5") end),
+    awful.key({}, "XF86MonBrightnessUp", function () awful.util.spawn(brightup(bright_widget)) end),
+    awful.key({}, "XF86MonBrightnessDown", function () awful.util.spawn(brightdown(bright_widget)) end),
 
     -- Volume
-    awful.key({}, "XF86AudioRaiseVolume", function () awful.util.spawn("pulsemixer --change-volume +1") end),
-    awful.key({}, "XF86AudioLowerVolume", function () awful.util.spawn("pulsemixer --change-volume -1") end),
+    awful.key({}, "XF86AudioRaiseVolume", function () awful.util.spawn(volup(vol_widget)) end),
+    awful.key({}, "XF86AudioLowerVolume", function () awful.util.spawn(voldown(vol_widget)) end),
     awful.key({}, "XF86AudioMute", function () awful.util.spawn(mute(vol_widget)) end),
     
     -- Layout manipulation
