@@ -261,6 +261,9 @@ local bat_level = awful.widget.watch("cat /sys/class/power_supply/BAT1/capacity"
 		baticon = ""	
 	elseif bat >= 90 and bat <= 100 then
 		baticon = ""
+		if bat == 100 then
+			naughty.notify { title = "Battery full", text = "You can unplug the charger", timeout = 15, fg = cust_theme["fg_normal"], bg = cust_theme["bg_focus"] }
+		end
 	end
 	widget:set_text(string.format("[ %s %d%% ] • ", baticon, bat))
 end)
@@ -458,14 +461,6 @@ globalkeys = gears.table.join(
             end
         end,
         {description = "go back", group = "client"}),
-        
-    -- Floating clients
-    awful.key({ modkey,           }, "[",     function () awful.client.moveresize( 10,  10, -20, -20) end),
-    awful.key({ modkey,           }, "]",     function () awful.client.moveresize(-10, -10,  20,  20) end),
-    awful.key({ modkey, "Control"   }, "Down",  function () awful.client.moveresize(  0,  20,   0,   0) end),
-    awful.key({ modkey, "Control"   }, "Up",    function () awful.client.moveresize(  0, -20,   0,   0) end),
-    awful.key({ modkey, "Control" }, "Left",  function () awful.client.moveresize(-20,   0,   0,   0) end),
-    awful.key({ modkey, "Control" }, "Right", function () awful.client.moveresize( 20,   0,   0,   0) end),
 
     -- Standard program
     awful.key({ modkey,           }, "t", function () awful.spawn(terminal) end,
@@ -559,8 +554,6 @@ clientkeys = gears.table.join(
         {description = "toggle fullscreen", group = "client"}),
     awful.key({ modkey }, "w",      function (c) c:kill()                         end,
               {description = "close", group = "client"}),
-    awful.key({ modkey, "Control" }, "space",  awful.client.floating.toggle                     ,
-              {description = "toggle floating", group = "client"}),
     awful.key({ modkey, "Control" }, "Return", function (c) c:swap(awful.client.getmaster()) end,
               {description = "move to master", group = "client"}),
     awful.key({ modkey,           }, "o",      function (c) c:move_to_screen()               end,
@@ -574,6 +567,21 @@ clientkeys = gears.table.join(
             c.minimized = true
         end ,
         {description = "minimize", group = "client"}),
+    
+    -- Floating clients
+    awful.key({ modkey, "Control" }, "space", function () awful.client.floating.toggle()              end),
+    awful.key({ modkey,           }, "c",     function () awful.placement.centered()                  end),
+    awful.key({ modkey,           }, "[",     function () awful.client.moveresize( 10,  10, -20, -20) end),
+    awful.key({ modkey,           }, "]",     function () awful.client.moveresize(-10, -10,  20,  20) end),
+    awful.key({ modkey, "Control" }, "Down",  function () awful.client.moveresize(  0,  20,   0,   0) end),
+    awful.key({ modkey, "Control" }, "Up",    function () awful.client.moveresize(  0, -20,   0,   0) end),
+    awful.key({ modkey, "Control" }, "Left",  function () awful.client.moveresize(-20,   0,   0,   0) end),
+    awful.key({ modkey, "Control" }, "Right", function () awful.client.moveresize( 20,   0,   0,   0) end),
+    awful.key({ modkey, "Mod1"    }, "Down",  function () awful.client.moveresize(  0,   0,   0,  20) end),
+    awful.key({ modkey, "Mod1"    }, "Up",    function () awful.client.moveresize(  0,   0,   0, -20) end),
+    awful.key({ modkey, "Mod1"    }, "Left",  function () awful.client.moveresize(  0,   0, -20,   0) end),
+    awful.key({ modkey, "Mod1"    }, "Right", function () awful.client.moveresize(  0,   0,  20,   0) end),
+    
     awful.key({ modkey,           }, "m",
         function (c)
             c.maximized = not c.maximized
