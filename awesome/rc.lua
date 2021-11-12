@@ -408,10 +408,12 @@ root.buttons(gears.table.join(
 globalkeys = gears.table.join(
     awful.key({ modkey,           }, "s",      hotkeys_popup.show_help,
               {description="show help", group="awesome"}),
-    awful.key({ modkey, "Ctrl"           }, "Left",   awful.tag.viewprev,
+              
+    --[[ awful.key({ modkey, "Ctrl"           }, "Left",   awful.tag.viewprev,
               {description = "view previous", group = "tag"}),
     awful.key({ modkey, "Ctrl"           }, "Right",  awful.tag.viewnext,
               {description = "view next", group = "tag"}),
+    --]]
     awful.key({ modkey,           }, "Escape", awful.tag.history.restore,
               {description = "go back", group = "tag"}),
 
@@ -456,6 +458,14 @@ globalkeys = gears.table.join(
             end
         end,
         {description = "go back", group = "client"}),
+        
+    -- Floating clients
+    awful.key({ modkey,           }, "[",     function () awful.client.moveresize( 10,  10, -20, -20) end),
+    awful.key({ modkey,           }, "]",     function () awful.client.moveresize(-10, -10,  20,  20) end),
+    awful.key({ modkey, "Control"   }, "Down",  function () awful.client.moveresize(  0,  20,   0,   0) end),
+    awful.key({ modkey, "Control"   }, "Up",    function () awful.client.moveresize(  0, -20,   0,   0) end),
+    awful.key({ modkey, "Control" }, "Left",  function () awful.client.moveresize(-20,   0,   0,   0) end),
+    awful.key({ modkey, "Control" }, "Right", function () awful.client.moveresize( 20,   0,   0,   0) end),
 
     -- Standard program
     awful.key({ modkey,           }, "t", function () awful.spawn(terminal) end,
