@@ -212,22 +212,19 @@ handle:close()
 function brightup(widget)
     awful.util.spawn("light -A 1")
     cur_bright = cur_bright + 1
-    widget.text = string.format("[ %s %d%% ] • ", "", cur_bright)
+    widget.text = string.format("[ %s %d%% ] ", "", cur_bright)
 end
 
 function brightdown(widget)
     awful.util.spawn("light -U 1")
     cur_bright = cur_bright - 1
-    widget.text = string.format("[ %s %d%% ] • ", "", cur_bright)
+    widget.text = string.format("[ %s %d%% ] ", "", cur_bright)
 end
 
 
 -- }}}
 
 -- {{{ Widgets
-
--- Create a textclock widget
-mytextclock = wibox.widget { font = text_font, format = "%a, %d %b %H:%M ", widget = wibox.widget.textclock }
 
 -- Battery
 local bat_level = awful.widget.watch("cat /sys/class/power_supply/BAT1/capacity", 15, function(widget, stdout)
@@ -274,16 +271,10 @@ local bat_widget = wibox.widget { font = text_font, widget = bat_level }
 local vol_widget = wibox.widget { font = text_font, text = string.format("[ %s %d%% ] • ", "墳", cur_vol), widget = wibox.widget.textbox }
 
 -- Brightness
-local bright_widget = wibox.widget { font = text_font, text = string.format("[ %s %d%% ] • ", "", cur_bright), widget = wibox.widget.textbox }
+local bright_widget = wibox.widget { font = text_font, text = string.format("[ %s %d%% ] ", "", cur_bright), widget = wibox.widget.textbox }
 
--- Brigtness
--- local brighticon = wibox.widget.imagebox(theme.widget_brightness)
--- local brightwidget = awful.widget.watch('light -G', 0.1,
---     function(widget, stdout, stderr, exitreason, exitcode)
---         local brightness_level = tonumber(string.format("%.0f", stdout))
---         widget:set_markup(markup.font(theme.font, " " .. brightness_level .. "%"))
---         brighticon:set_image(theme.widget_brightness)
--- end)
+-- Create a textclock widget
+mytextclock = wibox.widget { font = text_font, format = "%a, %d %b %H:%M ", widget = wibox.widget.textclock }
 
 -- }}}
 
@@ -571,6 +562,9 @@ clientkeys = gears.table.join(
     -- Floating clients
     awful.key({ modkey, "Control" }, "space", function () awful.client.floating.toggle()              end),
     awful.key({ modkey,           }, "c",     function () awful.placement.centered()                  end),
+    awful.key({ modkey, "Mod1"    }, "c",     function () 
+	    awful.spawn("alacritty --class tty-clock -e tty-clock")
+    end),
     awful.key({ modkey,           }, "[",     function () awful.client.moveresize( 10,  10, -20, -20) end),
     awful.key({ modkey,           }, "]",     function () awful.client.moveresize(-10, -10,  20,  20) end),
     awful.key({ modkey, "Control" }, "Down",  function () awful.client.moveresize(  0,  20,   0,   0) end),
@@ -683,8 +677,12 @@ awful.rules.rules = {
                      buttons = clientbuttons,
                      screen = awful.screen.preferred,
                      placement = awful.placement.no_overlap+awful.placement.no_offscreen
-     }
+     }, 
     },
+
+    -- Digital clock
+    { rule_any = { instance = { "tty-clock"} },
+    properties = { callback = function (c) c.ontop = not c.ontop end, floating = true, width = 600, height = 300, placement = awful.placement.centered }},
 
     -- Floating clients.
     { rule_any = {
