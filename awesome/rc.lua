@@ -792,4 +792,4 @@ client.connect_signal("unfocus", function(c) c.border_color = beautiful.border_n
 
 beautiful.useless_gap = 5
 
-awful.spawn.with_shell("picom")
+awful.spawn.with_shell("picom --experimental-backend")
