@@ -15,12 +15,12 @@ window:
     y: 5
 
 # Background opacity
-background_opacity: 0.85
+background_opacity: 0.80
   
 # Font configuration
 font:
   normal:
-    family: JetBrains Mono
+    family: JetBrainsMono Nerd Font Mono
     style: Medium
 
   #bold:
@@ -52,7 +52,7 @@ font:
     #style: Bold Italic
 
   # Point size
-  size: 13.0
+  size: 14.0
 
   # Offset is the extra space around each character. `offset.y` can be thought
   # of as modifying the line spacing, and `offset.x` as modifying the letter
