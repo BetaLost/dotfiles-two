@@ -290,7 +290,7 @@ awful.screen.connect_for_each_screen(function(s)
     
     -- Create system tray
     s.systray = wibox.widget.systray()
-    s.systray.visible = false
+    s.systray.visible = false 
 
     -- Create an imagebox widget which will contain an icon indicating which layout we're using.
     -- We need one layoutbox per screen.
@@ -308,61 +308,61 @@ awful.screen.connect_for_each_screen(function(s)
     }
 
     -- Create a tasklist widget
-    -- s.mytasklist = awful.widget.tasklist {
-    --     screen  = s,
-    --     filter  = awful.widget.tasklist.filter.currenttags,
-    --     buttons = tasklist_buttons
-    -- }
-    
     s.mytasklist = awful.widget.tasklist {
-    screen   = s,
-    filter   = awful.widget.tasklist.filter.currenttags,
-    buttons  = tasklist_buttons,
-    style    = {
-        shape_border_width = 1,
-        shape_border_color = '#777777',
-        shape  = gears.shape.rounded_bar,
-    },
-    layout   = {
-        spacing = 10,
-        spacing_widget = {
-            {
-                forced_width = 5,
-                shape        = gears.shape.circle,
-                widget       = wibox.widget.separator
-            },
-            valign = 'center',
-            halign = 'center',
-            widget = wibox.container.place,
-        },
-        layout  = wibox.layout.flex.horizontal
-    },
+        screen  = s,
+        filter  = awful.widget.tasklist.filter.currenttags,
+        buttons = tasklist_buttons
+    }
+    
+    -- s.mytasklist = awful.widget.tasklist {
+    -- screen   = s,
+    -- filter   = awful.widget.tasklist.filter.currenttags,
+    -- buttons  = tasklist_buttons,
+    -- style    = {
+    --     shape_border_width = 0,
+    --     shape_border_color = '#777777',
+    --     shape  = gears.shape.rounded_bar,
+    -- },
+    -- layout   = {
+    --     spacing = 10,
+    --     spacing_widget = {
+    --         {
+    --             forced_width = 5,
+    --             shape        = gears.shape.circle,
+    --             widget       = wibox.widget.separator
+    --         },
+    --         valign = 'center',
+    --         halign = 'center',
+    --         widget = wibox.container.place,
+    --     },
+    --     layout  = wibox.layout.flex.horizontal
+    -- },
 
-    widget_template = {
-        {
-            {
-                {
-                    {
-                        id     = 'icon_role',
-                        widget = wibox.widget.imagebox,
-                    },
-                    margins = 2,
-                    widget  = wibox.container.margin,
-                },
-                {
-                    id     = 'text_role',
-                    widget = wibox.widget.textbox,
-                },
-                layout = wibox.layout.fixed.horizontal,
-            },
-            left  = 10,
-            right = 10,
-            widget = wibox.container.margin
-        },
-        id     = 'background_role',
-        widget = wibox.container.background,
-    },
-}
+    -- widget_template = {
+    --     {
+    --         {
+    --             {
+    --                 {
+    --                     id     = 'icon_role',
+    --                     widget = wibox.widget.imagebox,
+    --                 },
+    --                 margins = 2,
+    --                 widget  = wibox.container.margin,
+    --             },
+    --             {
+    --                 id     = 'text_role',
+    --                 widget = wibox.widget.textbox,
+    --             },
+    --             layout = wibox.layout.fixed.horizontal,
+    --         },
+    --         left  = 10,
+    --         right = 10,
+    --         widget = wibox.container.margin
+    --     },
+    --     id     = 'background_role',
+    --     widget = wibox.container.background,
+    -- },
+    -- }
 
     -- Create the wibox
     s.mywibox = awful.wibar({ position = "top", screen = s })
@@ -376,7 +376,7 @@ awful.screen.connect_for_each_screen(function(s)
             s.mypromptbox,
         },
         -- Middle widget	
-        wibox.container.margin(s.mytasklist, 2, 2, 1, 1), 
+        wibox.container.margin(s.mytasklist, 10, 10), 
         { -- Right widgets
             layout = wibox.layout.fixed.horizontal,
 	    s.systray,
@@ -682,7 +682,7 @@ awful.rules.rules = {
 
     -- Digital clock
     { rule_any = { instance = { "tty-clock"} },
-    properties = { callback = function (c) c.ontop = not c.ontop end, floating = true, width = 600, height = 300, placement = awful.placement.centered }},
+    properties = { callback = function (c) c.ontop = not c.ontop end, floating = true, width = 625, height = 325, placement = awful.placement.centered }},
 
     -- Floating clients.
     { rule_any = {
@@ -793,3 +793,4 @@ client.connect_signal("unfocus", function(c) c.border_color = beautiful.border_n
 beautiful.useless_gap = 5
 
 awful.spawn.with_shell("picom --experimental-backend")
+awful.spawn.with_shell("nm-applet")
