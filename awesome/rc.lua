@@ -155,8 +155,7 @@ local cust_theme = require("themes.default.theme")
 local text_font = cust_theme["font"]
 
 local function set_wallpaper(s)
-    awful.spawn.with_shell("$HOME/.config/awesome/s_wall.sh")
-    os.execute("sleep 1")
+	os.execute("$HOME/.config/awesome/s_wall.sh")
     beautiful.init("~/.config/awesome/themes/default/theme.lua")
 end
 
