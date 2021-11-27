@@ -54,13 +54,8 @@ end
 terminal = "alacritty"
 editor = os.getenv("EDITOR") or "vim"
 editor_cmd = terminal .. " -e " .. editor
-
--- Default modkey.
--- Usually, Mod4 is the key with a logo between Control and Alt.
--- If you do not like this or do not have such a key,
--- I suggest you to remap Mod4 to another key using xmodmap or other tools.
--- However, you can use another modifier like Mod1, but it may interact with others.
 modkey = "Mod4"
+altkey = "Mod1"
 
 -- Table of layouts to cover with awful.layout.inc, order matters.
 awful.layout.layouts = {
@@ -490,7 +485,6 @@ globalkeys = gears.table.join(
               {description = "restore minimized", group = "client"}),
 
     -- Prompt
-    -- awful.key({ modkey }, "r", function() os.execute(string.format("dmenu_run -i -fn '%s' -nb '%s' -nf '%s' -sb '%s' -sf '%s'", beautiful.font, beautiful.bg_normal, beautiful.fg_normal, beautiful.bg_focus, beautiful.fg_focus)) end,
     awful.key({ modkey }, "r", function() awful.util.spawn("rofi -show drun") end),
 
     -- Browser
@@ -502,37 +496,42 @@ globalkeys = gears.table.join(
               {description = "show the menubar", group = "launcher"}),
    
     -- Show/hide system tray
-    awful.key({ modkey }, "=", function () awful.screen.focused().systray.visible = not awful.screen.focused().systray.visible end)
+    awful.key({ modkey }, "=", function () awful.screen.focused().systray.visible = not awful.screen.focused().systray.visible end),
 
-	      --[[
     -- Show/hide wibox
-    awful.key({ modkey }, "h", function ()
-            for s in screen do
-                s.mywibox.visible = not s.mywibox.visible
-                if s.mybottomwibox then
-                    s.mybottomwibox.visible = not s.mybottomwibox.visible
-                end
-            end
-        end,
-        {description = "toggle wibox", group = "awesome"}),
-        
-    -- On-the-fly useless gaps change
-    awful.key({ altkey, "Control" }, "+", function () lain.util.useless_gaps_resize(1) end,
-              {description = "increment useless gaps", group = "tag"}),
-    awful.key({ altkey, "Control" }, "-", function () lain.util.useless_gaps_resize(-1) end,
-              {description = "decrement useless gaps", group = "tag"}),
-    -- Dynamic tagging
-    awful.key({ modkey, "Shift" }, "n", function () lain.util.add_tag() end,
-              {description = "add new tag", group = "tag"}),
-    awful.key({ modkey, "Shift" }, "r", function () lain.util.rename_tag() end,
-              {description = "rename tag", group = "tag"}),
-    awful.key({ modkey, "Shift" }, "Left", function () lain.util.move_tag(-1) end,
-              {description = "move tag to the left", group = "tag"}),
-    awful.key({ modkey, "Shift" }, "Right", function () lain.util.move_tag(1) end,
-              {description = "move tag to the right", group = "tag"}),
-    awful.key({ modkey, "Shift" }, "d", function () lain.util.delete_tag() end,
-              {description = "delete tag", group = "tag"}),
-	      --]]
+	awful.key({ modkey }, "h", function () awful.screen.focused().mywibox.visible = not awful.screen.focused().mywibox.visible end),
+
+	-- {{{ Gaps
+	
+	awful.key({ modkey }, "g", function () 
+		local tag = awful.screen.focused().selected_tag
+
+		if tag.gap == 5 then
+			tag.gap = 0
+		elseif tag.gap == 0 then
+			tag.gap = 5
+		end
+	end),
+	
+	awful.key({ modkey, altkey }, "=", function ()
+		local tag = awful.screen.focused().selected_tag
+
+		tag.gap = tag.gap + 1	
+	end),
+
+	awful.key({ modkey, altkey }, "-", function ()
+		local tag = awful.screen.focused().selected_tag
+
+		tag.gap = tag.gap - 1
+	end),
+
+	awful.key({ modkey, altkey }, "r", function ()
+		local tag = awful.screen.focused().selected_tag
+
+		tag.gap = 5
+	end)
+
+	-- }}}
 )
 
 clientkeys = gears.table.join(
@@ -561,7 +560,7 @@ clientkeys = gears.table.join(
     -- Floating clients
     awful.key({ modkey, "Control" }, "space", function () awful.client.floating.toggle()              end),
     awful.key({ modkey,           }, "c",     function () awful.placement.centered()                  end),
-    awful.key({ modkey, "Mod1"    }, "c",     function () 
+    awful.key({ modkey, altkey    }, "c",     function () 
 	    awful.spawn("alacritty --class tty-clock -e tty-clock")
     end),
     awful.key({ modkey,           }, "[",     function () awful.client.moveresize( 10,  10, -20, -20) end),
@@ -570,10 +569,10 @@ clientkeys = gears.table.join(
     awful.key({ modkey, "Control" }, "Up",    function () awful.client.moveresize(  0, -20,   0,   0) end),
     awful.key({ modkey, "Control" }, "Left",  function () awful.client.moveresize(-20,   0,   0,   0) end),
     awful.key({ modkey, "Control" }, "Right", function () awful.client.moveresize( 20,   0,   0,   0) end),
-    awful.key({ modkey, "Mod1"    }, "Down",  function () awful.client.moveresize(  0,   0,   0,  20) end),
-    awful.key({ modkey, "Mod1"    }, "Up",    function () awful.client.moveresize(  0,   0,   0, -20) end),
-    awful.key({ modkey, "Mod1"    }, "Left",  function () awful.client.moveresize(  0,   0, -20,   0) end),
-    awful.key({ modkey, "Mod1"    }, "Right", function () awful.client.moveresize(  0,   0,  20,   0) end),
+    awful.key({ modkey, altkey    }, "Down",  function () awful.client.moveresize(  0,   0,   0,  20) end),
+    awful.key({ modkey, altkey    }, "Up",    function () awful.client.moveresize(  0,   0,   0, -20) end),
+    awful.key({ modkey, altkey    }, "Left",  function () awful.client.moveresize(  0,   0, -20,   0) end),
+    awful.key({ modkey, altkey    }, "Right", function () awful.client.moveresize(  0,   0,  20,   0) end),
     
     awful.key({ modkey,           }, "m",
         function (c)
